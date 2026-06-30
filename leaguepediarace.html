@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LeaguepediaRace</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-deep:#12151a; --bg-panel:#1b1f27; --bg-panel-2:#21262f; --line:#2c323d;
+    --gold:#d4a24e; --gold-soft:#e8c880; --text:#e9e6de; --text-muted:#8b919c;
+    --green:#6fbe8f; --red:#d97755;
+    --font-display:'Oswald', sans-serif; --font-body:'Source Serif 4', serif; --font-mono:'JetBrains Mono', monospace;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; background:var(--bg-deep); color:var(--text); font-family:var(--font-body);
+       min-height:100vh; display:flex; flex-direction:column; align-items:center; padding:24px 16px 60px;}
+  .wrap{width:100%; max-width:780px;}
+
+  .topbar{display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--line); padding-bottom:14px; margin-bottom:14px; gap:12px; flex-wrap:wrap;}
+  .eyebrow{font-family:var(--font-display); font-weight:600; letter-spacing:.14em; font-size:12px; color:var(--gold-soft); text-transform:uppercase;}
+  .brand{font-family:var(--font-display); font-weight:700; font-size:22px;}
+  .brand span{color:var(--gold);}
+  .userbox{display:flex; align-items:center; gap:10px;}
+  .userbox img{width:32px; height:32px; border-radius:50%; border:1px solid var(--gold);}
+  .userbox .uname{font-family:var(--font-display); font-size:13px; font-weight:600;}
+  .userbox .urating{font-family:var(--font-mono); font-size:12px; color:var(--gold-soft);}
+  .signout{font-family:var(--font-mono); font-size:11px; color:var(--text-muted); text-decoration:underline; cursor:pointer; background:none; border:none;}
+
+  .tabs{display:flex; gap:6px; margin-bottom:18px;}
+  .tab{font-family:var(--font-display); font-weight:600; font-size:13px; letter-spacing:.03em; text-transform:uppercase;
+    padding:9px 16px; border-radius:6px 6px 0 0; border:1px solid var(--line); border-bottom:none; background:var(--bg-panel-2);
+    color:var(--text-muted); cursor:pointer;}
+  .tab.active{background:var(--bg-panel); color:var(--gold-soft); border-color:var(--gold);}
+  .tabpanel{display:none;}
+  .tabpanel.active{display:block;}
+
+  .scoreboard{display:flex; gap:18px; font-family:var(--font-mono);}
+  .stat{text-align:right;}
+  .stat .num{font-size:20px; font-weight:600; color:var(--gold-soft); line-height:1;}
+  .stat .label{font-size:10px; color:var(--text-muted); letter-spacing:.08em; text-transform:uppercase;}
+
+  .path-strip{display:flex; align-items:center; gap:6px; flex-wrap:wrap; background:var(--bg-panel);
+    border:1px solid var(--line); border-radius:6px; padding:10px 12px; margin-bottom:14px; min-height:20px;}
+  .chip{font-family:var(--font-display); font-size:12.5px; font-weight:500; padding:3px 9px; border-radius:3px;
+    background:var(--bg-panel-2); color:var(--text-muted); border:1px solid var(--line); white-space:nowrap;}
+  .chip.current{color:var(--bg-deep); background:var(--gold); border-color:var(--gold); font-weight:600;}
+  .chevron{color:var(--line); font-size:13px;}
+
+  .target-banner{display:flex; align-items:center; gap:10px; border:1px solid var(--gold); border-radius:6px;
+    padding:10px 14px; margin-bottom:18px; background:linear-gradient(180deg, rgba(212,162,78,.10), rgba(212,162,78,.03));}
+  .target-banner .tlabel{font-family:var(--font-display); font-size:11px; letter-spacing:.12em; color:var(--gold-soft); text-transform:uppercase;}
+  .target-banner .ttitle{font-family:var(--font-display); font-weight:600; font-size:16px;}
+
+  .panel{background:var(--bg-panel); border:1px solid var(--line); border-radius:8px; padding:24px 26px;}
+  .panel h2{font-family:var(--font-display); font-size:18px; margin:0 0 4px;}
+  .panel p.hint{font-size:14px; color:var(--text-muted); margin:0 0 16px;}
+  .field{margin-bottom:14px;}
+  .field label{display:block; font-family:var(--font-display); font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--text-muted); margin-bottom:6px;}
+  .field-row{display:flex; gap:8px;}
+  input[type=text]{flex:1; background:var(--bg-panel-2); border:1px solid var(--line); border-radius:5px; color:var(--text);
+    font-family:var(--font-body); font-size:15px; padding:9px 12px;}
+  input[type=text]:focus{outline:2px solid var(--gold); outline-offset:1px; border-color:var(--gold);}
+  .dice{background:var(--bg-panel-2); border:1px solid var(--line); color:var(--gold-soft); border-radius:5px; padding:0 12px; cursor:pointer; font-size:16px;}
+  .dice:disabled{opacity:.4; cursor:wait;}
+
+  .league-filter{margin:16px 0 4px;}
+  .league-filter .flabel{font-family:var(--font-display); font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--text-muted); margin-bottom:8px; display:block;}
+  .league-chips{display:flex; gap:8px; flex-wrap:wrap;}
+  .league-chip{font-family:var(--font-display); font-weight:600; font-size:12.5px; padding:7px 13px; border-radius:20px;
+    border:1px solid var(--line); background:var(--bg-panel-2); color:var(--text-muted); cursor:pointer;}
+  .league-chip.active{background:var(--gold); border-color:var(--gold); color:var(--bg-deep);}
+
+  .actions{display:flex; gap:10px; margin-top:20px; flex-wrap:wrap;}
+  .errmsg{color:var(--red); font-family:var(--font-mono); font-size:12.5px; margin-top:10px; display:none;}
+  .errmsg.show{display:block;}
+
+  .article{background:var(--bg-panel); border:1px solid var(--line); border-radius:8px; padding:26px 28px 22px;}
+  .article .meta-row{display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;}
+  .article .meta{font-family:var(--font-display); font-size:11.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--text-muted);}
+  .article .extlink{font-family:var(--font-mono); font-size:11px; color:var(--text-muted); text-decoration:none;}
+  .article h1{font-family:var(--font-display); font-weight:700; font-size:30px; margin:0 0 14px; border-bottom:1px solid var(--line); padding-bottom:12px;}
+  .article p{font-size:16.5px; line-height:1.65; color:#cfcbc1; margin:0 0 14px;}
+  .article a.hop{color:var(--gold-soft); text-decoration:none; border-bottom:1px solid rgba(232,200,128,.45); cursor:pointer;}
+  .article a.hop:hover{color:var(--gold); border-bottom-color:var(--gold);}
+  .article table{width:100%; border-collapse:collapse; margin:8px 0 18px; font-family:var(--font-mono); font-size:12.5px;}
+  .article table th, .article table td{border:1px solid var(--line); padding:6px 8px; text-align:left; vertical-align:top; color:#cfcbc1;}
+  .article table th{color:var(--gold-soft); background:var(--bg-panel-2);}
+  .article img{max-width:100%; border-radius:4px;}
+  .empty-note{font-family:var(--font-mono); font-size:13px; color:var(--text-muted); padding:10px 0;}
+  .loading{font-family:var(--font-mono); font-size:13px; color:var(--gold-soft); padding:30px 0; text-align:center;}
+  .legend{font-family:var(--font-mono); font-size:11.5px; color:var(--text-muted); margin-top:16px;}
+  .controls{display:flex; gap:10px; margin-top:18px; flex-wrap:wrap;}
+
+  button.btn{font-family:var(--font-display); font-weight:600; letter-spacing:.04em; font-size:13px; padding:9px 16px;
+    border-radius:5px; cursor:pointer; text-transform:uppercase; border:1px solid var(--line);}
+  .btn-primary{background:var(--gold); border-color:var(--gold); color:var(--bg-deep);}
+  .btn-primary:hover{background:var(--gold-soft);}
+  .btn-ghost{background:transparent; color:var(--text-muted);}
+  .btn-ghost:hover{color:var(--text); border-color:var(--text-muted);}
+  .btn:disabled{opacity:.5; cursor:not-allowed;}
+  .btn-google{display:flex; align-items:center; gap:10px; background:#fff; color:#1f1f1f; border:none; padding:11px 20px; border-radius:6px; font-family:var(--font-display); font-weight:600; cursor:pointer;}
+
+  .note{margin-top:26px; font-family:var(--font-mono); font-size:11.5px; color:var(--text-muted); border-top:1px solid var(--line); padding-top:14px; line-height:1.6;}
+  .note code{color:var(--gold-soft);}
+
+  .vs-row{display:flex; align-items:center; justify-content:center; gap:22px; margin:20px 0;}
+  .vs-player{text-align:center;}
+  .vs-player img{width:56px; height:56px; border-radius:50%; border:2px solid var(--line);}
+  .vs-player.ready img{border-color:var(--green);}
+  .vs-player .pname{font-family:var(--font-display); font-size:13px; margin-top:6px;}
+  .vs-player .prating{font-family:var(--font-mono); font-size:11px; color:var(--text-muted);}
+  .vs-player .ptag{font-family:var(--font-mono); font-size:10.5px; color:var(--green); margin-top:2px; visibility:hidden;}
+  .vs-player.ready .ptag{visibility:visible;}
+  .vs-versus{font-family:var(--font-display); font-size:20px; color:var(--gold);}
+
+  .countdown{font-family:var(--font-mono); font-size:42px; color:var(--gold); text-align:center; padding:30px 0;}
+
+  .invite-box{background:var(--bg-panel-2); border:1px solid var(--line); border-radius:6px; padding:10px 12px;
+    display:flex; gap:8px; align-items:center; font-family:var(--font-mono); font-size:12.5px; margin-top:14px;}
+  .invite-box input{flex:1; background:transparent; border:none; color:var(--text); font-family:var(--font-mono); font-size:12px;}
+
+  .rank-list{list-style:none; margin:0; padding:0;}
+  .rank-row{display:flex; align-items:center; gap:12px; padding:10px 6px; border-bottom:1px solid var(--line);}
+  .rank-row:last-child{border-bottom:none;}
+  .rank-pos{font-family:var(--font-mono); color:var(--text-muted); width:24px;}
+  .rank-row img{width:30px; height:30px; border-radius:50%;}
+  .rank-name{font-family:var(--font-display); font-size:14px; flex:1;}
+  .rank-score{font-family:var(--font-mono); color:var(--gold-soft); font-weight:600;}
+  .rank-row.me{background:rgba(212,162,78,.08); border-radius:5px;}
+
+  .overlay{position:fixed; inset:0; background:rgba(8,9,11,.82); display:none; align-items:center; justify-content:center; padding:20px; z-index:10;}
+  .overlay.show{display:flex;}
+  .win-card{width:100%; max-width:480px; background:var(--bg-panel); border:1px solid var(--gold); border-radius:10px; padding:30px 28px; text-align:center;}
+  .win-card .tag{font-family:var(--font-display); font-size:11px; letter-spacing:.16em; color:var(--gold-soft); text-transform:uppercase;}
+  .win-card h2{font-family:var(--font-display); font-size:26px; margin:8px 0 18px;}
+  .win-stats{display:flex; justify-content:center; gap:30px; margin-bottom:20px;}
+  .win-stats .num{font-family:var(--font-mono); font-size:26px; color:var(--gold-soft); font-weight:600;}
+  .win-stats .label{font-family:var(--font-display); font-size:10.5px; color:var(--text-muted); letter-spacing:.08em; text-transform:uppercase;}
+  .win-path{font-family:var(--font-mono); font-size:12px; color:var(--text-muted); line-height:1.9; text-align:left;
+    background:var(--bg-panel-2); border:1px solid var(--line); border-radius:6px; padding:12px 14px; margin-bottom:20px; max-height:140px; overflow:auto;}
+  .delta-pos{color:var(--green);} .delta-neg{color:var(--red);}
+
+  #loginGate{display:flex; flex-direction:column; align-items:center; justify-content:center; gap:18px; padding:80px 0;}
+  #loginGate .gate-title{font-family:var(--font-display); font-size:24px; font-weight:700;}
+  #loginGate .gate-sub{font-family:var(--font-mono); font-size:13px; color:var(--text-muted); text-align:center; max-width:360px;}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="topbar">
+    <div>
+      <div class="brand">League<span>pedia</span>Race</div>
+    </div>
+    <div id="authArea"></div>
+  </div>
+
+  <div id="loginGate">
+    <div class="gate-title">Inicia sesión para jugar</div>
+    <div class="gate-sub">Necesitas una cuenta para guardar tu ranking y jugar 1v1 contra tus amigos.</div>
+    <button class="btn-google" id="googleSignInBtn">
+      <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.92c1.7-1.57 2.68-3.88 2.68-6.62z"/><path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.92-2.26c-.81.54-1.84.87-3.04.87-2.34 0-4.32-1.58-5.03-3.71H.96v2.33A9 9 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.97 10.72A5.4 5.4 0 0 1 3.69 9c0-.6.1-1.18.28-1.72V4.95H.96A9 9 0 0 0 0 9c0 1.45.35 2.83.96 4.05l3.01-2.33z"/><path fill="#EA4335" d="M9 3.58c1.32 0 2.51.45 3.44 1.35l2.59-2.59C13.46.89 11.43 0 9 0A9 9 0 0 0 .96 4.95l3.01 2.33C4.68 5.16 6.66 3.58 9 3.58z"/></svg>
+      Iniciar sesión con Google
+    </button>
+  </div>
+
+  <div id="appArea" style="display:none;">
+    <div class="tabs">
+      <button class="tab active" data-tab="practice">Practicar</button>
+      <button class="tab" data-tab="ranked">1v1 por puntos</button>
+      <button class="tab" data-tab="ranking">Ranking</button>
+    </div>
+
+    <!-- PRACTICE TAB (singleplayer, no points at stake) -->
+    <div class="tabpanel active" id="tab-practice">
+      <div id="practiceSetup" class="panel">
+        <h2>Modo práctica</h2>
+        <p class="hint">No afecta a tu puntuación. Sirve para calentar antes de retar a alguien.</p>
+        <div class="field">
+          <label>Página de inicio</label>
+          <div class="field-row"><input type="text" id="p_startInput" placeholder="ej. Faker"><button class="dice" id="p_diceStart">🎲</button></div>
+        </div>
+        <div class="field">
+          <label>Página objetivo</label>
+          <div class="field-row"><input type="text" id="p_targetInput" placeholder="ej. T1"><button class="dice" id="p_diceTarget">🎲</button></div>
+        </div>
+        <div class="league-filter">
+          <span class="flabel">Filtrar aleatorio por liga</span>
+          <div class="league-chips" id="p_leagueChips">
+            <button class="league-chip active" data-league="any">Cualquiera</button>
+            <button class="league-chip" data-league="lck">LCK 🇰🇷</button>
+            <button class="league-chip" data-league="lec">LEC 🇪🇺</button>
+            <button class="league-chip" data-league="lpl">LPL 🇨🇳</button>
+            <button class="league-chip" data-league="lcs">LCS 🇺🇸</button>
+          </div>
+        </div>
+        <div class="actions">
+          <button class="btn btn-primary" id="p_startBtn">Empezar</button>
+          <button class="btn btn-ghost" id="p_randomBtn">Aleatorio</button>
+        </div>
+        <div class="errmsg" id="p_err"></div>
+      </div>
+      <div id="practicePlay" style="display:none;">
+        <div class="path-strip" id="p_pathStrip"></div>
+        <div class="target-banner"><span class="tlabel">Objetivo</span><span class="ttitle" id="p_targetTitle">—</span></div>
+        <div class="article" id="p_article"></div>
+        <div class="legend">Enlaces dorados = salto válido (prosa, infobox y tablas; sin categorías ni plantillas).</div>
+        <div class="controls">
+          <button class="btn btn-ghost" id="p_giveUpBtn">Volver a práctica</button>
+          <button class="btn btn-ghost" id="p_resetBtn">Reiniciar ruta</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- RANKED TAB -->
+    <div class="tabpanel" id="tab-ranked">
+
+      <div id="rankedMenu" class="panel">
+        <h2>Crear una partida 1v1</h2>
+        <p class="hint">Elige inicio/objetivo (o randomiza), comparte el enlace con tu amigo y esperad a que ambos estéis listos. Gana quien llegue antes — puntos en juego, estilo Elo.</p>
+        <div class="field">
+          <label>Página de inicio</label>
+          <div class="field-row"><input type="text" id="r_startInput" placeholder="ej. Faker"><button class="dice" id="r_diceStart">🎲</button></div>
+        </div>
+        <div class="field">
+          <label>Página objetivo</label>
+          <div class="field-row"><input type="text" id="r_targetInput" placeholder="ej. T1"><button class="dice" id="r_diceTarget">🎲</button></div>
+        </div>
+        <div class="league-filter">
+          <span class="flabel">Filtrar aleatorio por liga</span>
+          <div class="league-chips" id="r_leagueChips">
+            <button class="league-chip active" data-league="any">Cualquiera</button>
+            <button class="league-chip" data-league="lck">LCK 🇰🇷</button>
+            <button class="league-chip" data-league="lec">LEC 🇪🇺</button>
+            <button class="league-chip" data-league="lpl">LPL 🇨🇳</button>
+            <button class="league-chip" data-league="lcs">LCS 🇺🇸</button>
+          </div>
+        </div>
+        <div class="actions">
+          <button class="btn btn-primary" id="r_createBtn">Crear partida</button>
+          <button class="btn btn-ghost" id="r_randomBtn">Inicio/objetivo aleatorios</button>
+        </div>
+        <div class="errmsg" id="r_err"></div>
+      </div>
+
+      <div id="rankedWaiting" class="panel" style="display:none;">
+        <h2>Esperando rival…</h2>
+        <p class="hint">Manda este enlace a tu amigo. En cuanto lo abra y entre con Google, aparecerá aquí.</p>
+        <div class="invite-box"><input type="text" id="r_inviteLink" readonly><button class="btn btn-ghost" id="r_copyBtn">Copiar</button></div>
+      </div>
+
+      <div id="rankedReady" class="panel" style="display:none;">
+        <h2>Carrera: <span id="r_readyStart"></span> → <span id="r_readyTarget"></span></h2>
+        <div class="vs-row">
+          <div class="vs-player" id="r_hostCard"><img id="r_hostImg"><div class="pname" id="r_hostName"></div><div class="prating" id="r_hostRating"></div><div class="ptag">LISTO</div></div>
+          <div class="vs-versus">VS</div>
+          <div class="vs-player" id="r_guestCard"><img id="r_guestImg"><div class="pname" id="r_guestName"></div><div class="prating" id="r_guestRating"></div><div class="ptag">LISTO</div></div>
+        </div>
+        <div class="actions" style="justify-content:center;">
+          <button class="btn btn-primary" id="r_readyBtn">Estoy listo</button>
+          <button class="btn btn-ghost" id="r_cancelBtn">Cancelar partida</button>
+        </div>
+      </div>
+
+      <div id="rankedCountdown" class="panel" style="display:none;">
+        <div class="countdown" id="r_countdownNum">3</div>
+      </div>
+
+      <div id="rankedRace" style="display:none;">
+        <div class="target-banner"><span class="tlabel">Objetivo</span><span class="ttitle" id="r_targetBanner">—</span></div>
+        <div class="article" id="r_article"></div>
+        <div class="legend">¡Tu rival está corriendo a la vez! Llega antes a la página objetivo para ganar puntos.</div>
+      </div>
+
+      <div id="rankedResult" class="panel" style="display:none;">
+        <h2 id="r_resultHeadline"></h2>
+        <div class="win-stats">
+          <div><div class="num" id="r_myDelta">+0</div><div class="label">Tu cambio</div></div>
+          <div><div class="num" id="r_oppDelta">+0</div><div class="label">Cambio rival</div></div>
+        </div>
+        <div class="actions" style="justify-content:center;"><button class="btn btn-primary" id="r_backBtn">Volver al menú</button></div>
+      </div>
+    </div>
+
+    <!-- RANKING TAB -->
+    <div class="tabpanel" id="tab-ranking">
+      <div class="panel">
+        <h2>Ranking</h2>
+        <p class="hint">Se actualiza en vivo según se resuelven partidas 1v1.</p>
+        <ul class="rank-list" id="rankingList"></ul>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="overlay" id="p_overlay">
+  <div class="win-card">
+    <div class="tag">¡Llegaste!</div>
+    <h2 id="p_winHeadline"></h2>
+    <div class="win-stats">
+      <div><div class="num" id="p_winClicks">0</div><div class="label">Saltos</div></div>
+      <div><div class="num" id="p_winTime">00:00</div><div class="label">Tiempo</div></div>
+    </div>
+    <button class="btn btn-primary" id="p_playAgainBtn">Otra ronda</button>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {
+  getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {
+  getFirestore, doc, getDoc, setDoc, updateDoc, addDoc, onSnapshot,
+  collection, query, orderBy, limit, runTransaction
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+// ====== 1) PEGA AQUÍ TU CONFIG DE FIREBASE (consola Firebase > Configuración del proyecto > tus apps) ======
+const firebaseConfig = {
+  apiKey: "AIzaSyAvcmG-uLxN5kgbiupQlZiDRRA1BigpkpU",
+  authDomain: "leaguepediarace.firebaseapp.com",
+  projectId: "leaguepediarace",
+  storageBucket: "leaguepediarace.firebasestorage.app",
+  messagingSenderId: "503350714557",
+  appId: "1:503350714557:web:d8b2610ce4b76637c2d7d4"
+};
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const provider = new GoogleAuthProvider();
+
+// ===================== shared Leaguepedia engine =====================
+const API = "https://lol.fandom.com/api.php";
+const BLOCKED_PREFIXES = ["category","template","file","special","help","portal","talk","user","user talk",
+  "module","mediawiki","leaguepedia","archive","draft","topic"];
+const LEAGUE_CATEGORIES = {
+  lck: "Category:Korean Teams", lec: "Category:European Teams",
+  lpl: "Category:Chinese Teams", lcs: "Category:North American Teams"
+};
+const leaguePoolCache = {};
+
+async function apiCall(params){
+  const url = new URL(API);
+  Object.entries(Object.assign({format:"json", origin:"*"}, params)).forEach(([k,v]) => url.searchParams.set(k,v));
+  const res = await fetch(url.toString());
+  if(!res.ok) throw new Error("network_" + res.status);
+  return res.json();
+}
+async function getLeagueTeamPool(key){
+  if(leaguePoolCache[key]) return leaguePoolCache[key];
+  const data = await apiCall({action:"query", list:"categorymembers", cmtitle: LEAGUE_CATEGORIES[key], cmlimit:"500", cmnamespace:"0"});
+  const titles = (data?.query?.categorymembers || []).map(m => m.title).filter(t => !t.includes("/"));
+  leaguePoolCache[key] = titles;
+  return titles;
+}
+async function fetchRandomTitle(leagueFilter){
+  if(leagueFilter && leagueFilter !== "any"){
+    const pool = await getLeagueTeamPool(leagueFilter);
+    if(pool.length === 0) throw new Error("No se encontraron equipos para esa liga ahora mismo.");
+    return pool[Math.floor(Math.random() * pool.length)];
+  }
+  for(let i=0;i<5;i++){
+    const data = await apiCall({action:"query", list:"random", rnnamespace:"0", rnlimit:"1"});
+    const title = data?.query?.random?.[0]?.title;
+    if(title && !title.includes("/")) return title;
+  }
+  const data = await apiCall({action:"query", list:"random", rnnamespace:"0", rnlimit:"1"});
+  return data.query.random[0].title;
+}
+function isBlockedTitle(title){
+  const idx = title.indexOf(":");
+  if(idx === -1) return false;
+  return BLOCKED_PREFIXES.includes(title.slice(0, idx).trim().toLowerCase());
+}
+async function fetchPage(title){
+  const data = await apiCall({action:"parse", page:title, prop:"text", redirects:"1"});
+  if(data.error){
+    if(data.error.code === "missingtitle") throw new Error("Esa página no existe en Leaguepedia: «" + title + "».");
+    throw new Error(data.error.info || "Error desconocido de la API.");
+  }
+  return { canonicalTitle: data.parse.title, html: data.parse.text["*"] };
+}
+function extractPlayableArticle(html){
+  const wrapper = document.createElement('div');
+  wrapper.innerHTML = html;
+  const root = wrapper.querySelector('.mw-parser-output') || wrapper;
+  root.querySelectorAll('.navbox, .ambox, .toc, .mw-editsection, sup.reference, .reflist, .references').forEach(e => e.remove());
+  root.querySelectorAll('table').forEach(table => {
+    const rows = table.querySelectorAll('tr');
+    if(rows.length > 20) for(let i=20;i<rows.length;i++) rows[i].remove();
+  });
+  root.querySelectorAll('img[data-src]').forEach(img => {
+    img.setAttribute('src', img.getAttribute('data-src'));
+    img.removeAttribute('data-src'); img.removeAttribute('srcset');
+  });
+  const container = document.createElement('div');
+  while(root.firstChild) container.appendChild(root.firstChild);
+  container.querySelectorAll('a').forEach(a => {
+    const href = a.getAttribute('href') || '';
+    const isRedlink = a.classList.contains('new');
+    const match = href.match(/^\/wiki\/([^#?]+)/);
+    if(!match || isRedlink){ a.replaceWith(document.createTextNode(a.textContent)); return; }
+    const title = decodeURIComponent(match[1]).replace(/_/g, ' ');
+    if(isBlockedTitle(title)){ a.replaceWith(document.createTextNode(a.textContent)); return; }
+    a.setAttribute('data-hop', title); a.setAttribute('href', '#'); a.classList.add('hop');
+  });
+  return container;
+}
+function renderArticleInto(boxEl, title, container, onHop){
+  const wikiUrl = "https://lol.fandom.com/wiki/" + encodeURIComponent(title.replace(/ /g,'_'));
+  boxEl.innerHTML = `<div class="meta-row"><span class="meta">Leaguepedia</span><a class="extlink" href="${wikiUrl}" target="_blank" rel="noopener">ver original ↗</a></div><h1>${title}</h1>`;
+  if(container.children.length === 0){
+    boxEl.innerHTML += `<div class="empty-note">Callejón sin salida — esta página casi no tiene enlaces jugables.</div>`;
+  } else {
+    boxEl.appendChild(container);
+  }
+  boxEl.querySelectorAll('a.hop').forEach(a => a.addEventListener('click', e => { e.preventDefault(); onHop(a.getAttribute('data-hop')); }));
+}
+function normalize(t){ return t.trim().toLowerCase().replace(/_/g,' '); }
+
+// ===================== auth =====================
+let currentUser = null;
+let currentUserData = null;
+
+document.getElementById('googleSignInBtn').addEventListener('click', () => {
+  signInWithPopup(auth, provider).catch(err => alert("No se pudo iniciar sesión: " + err.message));
+});
+
+async function ensureUserDoc(user){
+  const ref = doc(db, 'users', user.uid);
+  const snap = await getDoc(ref);
+  if(!snap.exists()){
+    await setDoc(ref, { displayName: user.displayName || 'Jugador', photoURL: user.photoURL || '', rating: 100, wins: 0, losses: 0, createdAt: Date.now() });
+  }
+  return ref;
+}
+
+onAuthStateChanged(auth, async (user) => {
+  if(user){
+    currentUser = user;
+    await ensureUserDoc(user);
+    document.getElementById('loginGate').style.display = 'none';
+    document.getElementById('appArea').style.display = 'block';
+    onSnapshot(doc(db, 'users', user.uid), snap => {
+      currentUserData = snap.data();
+      renderAuthArea();
+    });
+    subscribeRanking();
+    checkUrlForInvite();
+  } else {
+    currentUser = null;
+    document.getElementById('loginGate').style.display = 'flex';
+    document.getElementById('appArea').style.display = 'none';
+  }
+});
+
+function renderAuthArea(){
+  document.getElementById('authArea').innerHTML = `
+    <div class="userbox">
+      <img src="${currentUser.photoURL || ''}" alt="">
+      <div>
+        <div class="uname">${currentUser.displayName}</div>
+        <div class="urating">${currentUserData ? currentUserData.rating : '…'} pts</div>
+      </div>
+      <button class="signout" id="signOutBtn">Salir</button>
+    </div>`;
+  document.getElementById('signOutBtn').addEventListener('click', () => signOut(auth));
+}
+
+// ===================== tabs =====================
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tabpanel').forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+  });
+});
+
+// ===================== PRACTICE MODE =====================
+let pState = { path: [], target: null, startTime: null, timerId: null, finished: false };
+let pLeague = 'any';
+
+document.getElementById('p_leagueChips').addEventListener('click', e => {
+  const btn = e.target.closest('.league-chip'); if(!btn) return;
+  document.querySelectorAll('#p_leagueChips .league-chip').forEach(c=>c.classList.remove('active'));
+  btn.classList.add('active'); pLeague = btn.dataset.league;
+});
+document.getElementById('p_diceStart').addEventListener('click', async () => {
+  document.getElementById('p_startInput').value = await fetchRandomTitle(pLeague).catch(()=> '');
+});
+document.getElementById('p_diceTarget').addEventListener('click', async () => {
+  document.getElementById('p_targetInput').value = await fetchRandomTitle(pLeague).catch(()=> '');
+});
+document.getElementById('p_startBtn').addEventListener('click', () => {
+  const s = document.getElementById('p_startInput').value.trim();
+  const t = document.getElementById('p_targetInput').value.trim();
+  if(!s || !t){ showPErr("Escribe (o tira el dado en) ambos campos."); return; }
+  beginPractice(s, t);
+});
+document.getElementById('p_randomBtn').addEventListener('click', async () => {
+  try{
+    let s = await fetchRandomTitle(pLeague), t = await fetchRandomTitle(pLeague), tries=0;
+    while(normalize(s)===normalize(t) && tries<5){ t = await fetchRandomTitle(pLeague); tries++; }
+    await beginPractice(s, t);
+  } catch(err){ showPErr(err.message); }
+});
+function showPErr(msg){ const el=document.getElementById('p_err'); el.textContent=msg; el.classList.add('show'); }
+
+async function beginPractice(s, t){
+  try{
+    const startPage = await fetchPage(s);
+    const targetPage = await fetchPage(t);
+    if(normalize(startPage.canonicalTitle) === normalize(targetPage.canonicalTitle)){ showPErr("Inicio y objetivo no pueden coincidir."); return; }
+    pState = { path:[startPage.canonicalTitle], target: targetPage.canonicalTitle, startTime: Date.now(), timerId:null, finished:false };
+    document.getElementById('practiceSetup').style.display = 'none';
+    document.getElementById('practicePlay').style.display = 'block';
+    document.getElementById('p_targetTitle').textContent = targetPage.canonicalTitle;
+    renderPracticeArticle(startPage.canonicalTitle, extractPlayableArticle(startPage.html));
+    clearInterval(pState.timerId); pState.timerId = setInterval(pTick, 1000); pTick();
+  } catch(err){ showPErr(err.message); }
+}
+function renderPracticeArticle(title, container){
+  renderArticleInto(document.getElementById('p_article'), title, container, async (hopTitle) => {
+    if(pState.finished) return;
+    document.getElementById('p_article').innerHTML = `<div class="loading">Cargando…</div>`;
+    try{
+      const page = await fetchPage(hopTitle);
+      pState.path.push(page.canonicalTitle);
+      renderPathStripGeneric(document.getElementById('p_pathStrip'), pState.path);
+      renderPracticeArticle(page.canonicalTitle, extractPlayableArticle(page.html));
+      if(normalize(page.canonicalTitle) === normalize(pState.target)) finishPractice();
+    } catch(err){ document.getElementById('p_article').innerHTML = `<div class="empty-note">${err.message}</div>`; }
+  });
+}
+function renderPathStripGeneric(stripEl, titles){
+  stripEl.innerHTML = '';
+  titles.forEach((title,i) => {
+    if(i>0){ const c=document.createElement('span'); c.className='chevron'; c.textContent='›'; stripEl.appendChild(c); }
+    const chip=document.createElement('span'); chip.className='chip'+(i===titles.length-1?' current':''); chip.textContent=title; stripEl.appendChild(chip);
+  });
+}
+function pTick(){
+  const secs = Math.floor((Date.now()-pState.startTime)/1000);
+  // (no global timer display in practice header to keep it simple; shown in win modal)
+}
+function finishPractice(){
+  pState.finished = true; clearInterval(pState.timerId);
+  const secs = Math.floor((Date.now()-pState.startTime)/1000);
+  document.getElementById('p_winHeadline').textContent = `Llegaste a ${pState.target}`;
+  document.getElementById('p_winClicks').textContent = pState.path.length - 1;
+  document.getElementById('p_winTime').textContent = `${String(Math.floor(secs/60)).padStart(2,'0')}:${String(secs%60).padStart(2,'0')}`;
+  document.getElementById('p_overlay').classList.add('show');
+}
+document.getElementById('p_playAgainBtn').addEventListener('click', () => {
+  document.getElementById('p_overlay').classList.remove('show');
+  document.getElementById('practicePlay').style.display = 'none';
+  document.getElementById('practiceSetup').style.display = 'block';
+});
+document.getElementById('p_giveUpBtn').addEventListener('click', () => {
+  clearInterval(pState.timerId);
+  document.getElementById('practicePlay').style.display = 'none';
+  document.getElementById('practiceSetup').style.display = 'block';
+});
+document.getElementById('p_resetBtn').addEventListener('click', () => {
+  const first = pState.path[0];
+  pState.path = [first]; pState.startTime = Date.now(); pState.finished = false;
+  clearInterval(pState.timerId); pState.timerId = setInterval(pTick, 1000);
+  renderPathStripGeneric(document.getElementById('p_pathStrip'), pState.path);
+  fetchPage(first).then(p => renderPracticeArticle(p.canonicalTitle, extractPlayableArticle(p.html)));
+});
+
+// ===================== RANKED 1v1 MODE =====================
+let rLeague = 'any';
+let rMatchId = null, rUnsub = null, rState = { article: null, started:false, finished:false, path:[] };
+
+document.getElementById('r_leagueChips').addEventListener('click', e => {
+  const btn = e.target.closest('.league-chip'); if(!btn) return;
+  document.querySelectorAll('#r_leagueChips .league-chip').forEach(c=>c.classList.remove('active'));
+  btn.classList.add('active'); rLeague = btn.dataset.league;
+});
+document.getElementById('r_diceStart').addEventListener('click', async () => {
+  document.getElementById('r_startInput').value = await fetchRandomTitle(rLeague).catch(()=> '');
+});
+document.getElementById('r_diceTarget').addEventListener('click', async () => {
+  document.getElementById('r_targetInput').value = await fetchRandomTitle(rLeague).catch(()=> '');
+});
+document.getElementById('r_randomBtn').addEventListener('click', async () => {
+  let s = await fetchRandomTitle(rLeague), t = await fetchRandomTitle(rLeague), tries=0;
+  while(normalize(s)===normalize(t) && tries<5){ t = await fetchRandomTitle(rLeague); tries++; }
+  document.getElementById('r_startInput').value = s;
+  document.getElementById('r_targetInput').value = t;
+});
+document.getElementById('r_createBtn').addEventListener('click', async () => {
+  const s = document.getElementById('r_startInput').value.trim();
+  const t = document.getElementById('r_targetInput').value.trim();
+  if(!s || !t){ showRErr("Escribe (o tira el dado en) ambos campos."); return; }
+  try{
+    const startPage = await fetchPage(s);
+    const targetPage = await fetchPage(t);
+    if(normalize(startPage.canonicalTitle) === normalize(targetPage.canonicalTitle)){ showRErr("Inicio y objetivo no pueden coincidir."); return; }
+    const ref = await addDoc(collection(db, 'matches'), {
+      hostUid: currentUser.uid, hostName: currentUser.displayName, hostPhoto: currentUser.photoURL || '',
+      guestUid: null, guestName: null, guestPhoto: null,
+      startTitle: startPage.canonicalTitle, targetTitle: targetPage.canonicalTitle,
+      status: 'waiting', readyHost: false, readyGuest: false, raceStartAt: null,
+      resultHost: null, resultGuest: null, winnerUid: null, ratingChange: null, createdAt: Date.now()
+    });
+    openMatch(ref.id);
+  } catch(err){ showRErr(err.message); }
+});
+function showRErr(msg){ const el=document.getElementById('r_err'); el.textContent=msg; el.classList.add('show'); }
+
+function checkUrlForInvite(){
+  const params = new URLSearchParams(location.search);
+  const matchId = params.get('match');
+  if(matchId) openMatch(matchId);
+}
+
+async function openMatch(matchId){
+  rMatchId = matchId;
+  history.replaceState({}, '', location.pathname + '?match=' + matchId);
+  if(rUnsub) rUnsub();
+  rUnsub = onSnapshot(doc(db, 'matches', matchId), async (snap) => {
+    if(!snap.exists()) return;
+    const d = snap.data();
+    const isHost = d.hostUid === currentUser.uid;
+
+    // join as guest if there's a free slot
+    if(!isHost && d.guestUid !== currentUser.uid && d.status === 'waiting'){
+      await joinMatch(matchId);
+      return;
+    }
+    renderMatchState(matchId, d, isHost);
+
+    if(d.readyHost && d.readyGuest && !d.raceStartAt) tryStartRace(matchId);
+  });
+}
+
+async function joinMatch(matchId){
+  const ref = doc(db, 'matches', matchId);
+  await runTransaction(db, async (tx) => {
+    const snap = await tx.get(ref);
+    const d = snap.data();
+    if(!d) return;
+    if(d.hostUid === currentUser.uid) return;
+    if(d.guestUid && d.guestUid !== currentUser.uid) return;
+    if(!d.guestUid){
+      tx.update(ref, { guestUid: currentUser.uid, guestName: currentUser.displayName, guestPhoto: currentUser.photoURL || '', status: 'ready_check' });
+    }
+  });
+}
+
+function showRankedPanel(id){
+  ['rankedMenu','rankedWaiting','rankedReady','rankedCountdown','rankedRace','rankedResult'].forEach(p => {
+    document.getElementById(p).style.display = (p === id) ? 'block' : 'none';
+  });
+}
+
+function renderMatchState(matchId, d, isHost){
+  if(d.status === 'waiting'){
+    showRankedPanel('rankedWaiting');
+    const link = location.origin + location.pathname + '?match=' + matchId;
+    document.getElementById('r_inviteLink').value = link;
+    document.getElementById('r_copyBtn').onclick = () => navigator.clipboard.writeText(link);
+    return;
+  }
+  if(d.status === 'ready_check'){
+    showRankedPanel('rankedReady');
+    document.getElementById('r_readyStart').textContent = d.startTitle;
+    document.getElementById('r_readyTarget').textContent = d.targetTitle;
+    document.getElementById('r_hostImg').src = d.hostPhoto || '';
+    document.getElementById('r_hostName').textContent = d.hostName;
+    document.getElementById('r_guestImg').src = d.guestPhoto || '';
+    document.getElementById('r_guestName').textContent = d.guestName || '…';
+    document.getElementById('r_hostCard').classList.toggle('ready', !!d.readyHost);
+    document.getElementById('r_guestCard').classList.toggle('ready', !!d.readyGuest);
+    getDoc(doc(db,'users',d.hostUid)).then(s => document.getElementById('r_hostRating').textContent = (s.data()?.rating ?? '?') + ' pts');
+    if(d.guestUid) getDoc(doc(db,'users',d.guestUid)).then(s => document.getElementById('r_guestRating').textContent = (s.data()?.rating ?? '?') + ' pts');
+    document.getElementById('r_readyBtn').onclick = () => updateDoc(doc(db,'matches',matchId), isHost ? {readyHost:true} : {readyGuest:true});
+    document.getElementById('r_cancelBtn').onclick = () => { showRankedPanel('rankedMenu'); history.replaceState({}, '', location.pathname); };
+    return;
+  }
+  if(d.status === 'racing'){
+    const msLeft = d.raceStartAt - Date.now();
+    if(msLeft > 0 && !rState.started){
+      showRankedPanel('rankedCountdown');
+      clearInterval(rState.countdownTimer);
+      rState.countdownTimer = setInterval(() => {
+        const left = Math.ceil((d.raceStartAt - Date.now())/1000);
+        document.getElementById('r_countdownNum').textContent = left > 0 ? left : '¡YA!';
+        if(left <= 0){
+          clearInterval(rState.countdownTimer);
+          startRanked(matchId, d, isHost);
+        }
+      }, 200);
+    } else if(!rState.started){
+      startRanked(matchId, d, isHost);
+    }
+    return;
+  }
+  if(d.status === 'finished'){
+    showRankedPanel('rankedResult');
+    rState.started = false;
+    const myUid = currentUser.uid;
+    const myResult = isHost ? d.resultHost : d.resultGuest;
+    const oppResult = isHost ? d.resultGuest : d.resultHost;
+    const iWon = d.winnerUid === myUid;
+    const myDelta = d.ratingChange ? d.ratingChange[myUid] : 0;
+    const oppUid = isHost ? d.guestUid : d.hostUid;
+    const oppDelta = d.ratingChange ? d.ratingChange[oppUid] : 0;
+    document.getElementById('r_resultHeadline').textContent = iWon ? '¡Ganaste la carrera!' : 'Perdiste esta vez';
+    const myEl = document.getElementById('r_myDelta'); myEl.textContent = (myDelta>=0?'+':'') + myDelta; myEl.className = 'num ' + (myDelta>=0?'delta-pos':'delta-neg');
+    const oppEl = document.getElementById('r_oppDelta'); oppEl.textContent = (oppDelta>=0?'+':'') + oppDelta; oppEl.className = 'num ' + (oppDelta>=0?'delta-pos':'delta-neg');
+    document.getElementById('r_backBtn').onclick = () => { showRankedPanel('rankedMenu'); history.replaceState({}, '', location.pathname); if(rUnsub) rUnsub(); rUnsub=null; };
+  }
+}
+
+async function tryStartRace(matchId){
+  const ref = doc(db, 'matches', matchId);
+  await runTransaction(db, async (tx) => {
+    const snap = await tx.get(ref);
+    const d = snap.data();
+    if(d.raceStartAt || !(d.readyHost && d.readyGuest)) return;
+    tx.update(ref, { raceStartAt: Date.now() + 4000, status: 'racing' });
+  });
+}
+
+async function startRanked(matchId, d, isHost){
+  rState = { started: true, finished: false, path: [d.startTitle] };
+  showRankedPanel('rankedRace');
+  document.getElementById('r_targetBanner').textContent = d.targetTitle;
+  const startPage = await fetchPage(d.startTitle);
+  renderRankedArticle(matchId, d, isHost, startPage.canonicalTitle, extractPlayableArticle(startPage.html));
+}
+
+function renderRankedArticle(matchId, d, isHost, title, container){
+  renderArticleInto(document.getElementById('r_article'), title, container, async (hopTitle) => {
+    if(rState.finished) return;
+    document.getElementById('r_article').innerHTML = `<div class="loading">Cargando…</div>`;
+    try{
+      const page = await fetchPage(hopTitle);
+      rState.path.push(page.canonicalTitle);
+      if(normalize(page.canonicalTitle) === normalize(d.targetTitle)){
+        rState.finished = true;
+        await reportResult(matchId, Date.now(), rState.path.length - 1);
+      } else {
+        renderRankedArticle(matchId, d, isHost, page.canonicalTitle, extractPlayableArticle(page.html));
+      }
+    } catch(err){ document.getElementById('r_article').innerHTML = `<div class="empty-note">${err.message}</div>`; }
+  });
+}
+
+async function reportResult(matchId, finishedAt, clicks){
+  const ref = doc(db, 'matches', matchId);
+  await runTransaction(db, async (tx) => {
+    const snap = await tx.get(ref);
+    const d = snap.data();
+    const isHost = d.hostUid === currentUser.uid;
+    const myKey = isHost ? 'resultHost' : 'resultGuest';
+    const otherKey = isHost ? 'resultGuest' : 'resultHost';
+    if(d[myKey]) return;
+    const updates = { [myKey]: { finishedAt, clicks } };
+    const otherResult = d[otherKey];
+    if(otherResult && !d.winnerUid){
+      const hostResult = isHost ? { finishedAt, clicks } : otherResult;
+      const guestResult = isHost ? otherResult : { finishedAt, clicks };
+      const hostWins = hostResult.finishedAt <= guestResult.finishedAt;
+      const winnerUid = hostWins ? d.hostUid : d.guestUid;
+      const loserUid = hostWins ? d.guestUid : d.hostUid;
+      const winnerRef = doc(db, 'users', winnerUid);
+      const loserRef = doc(db, 'users', loserUid);
+      const winnerSnap = await tx.get(winnerRef);
+      const loserSnap = await tx.get(loserRef);
+      const winnerRating = winnerSnap.data().rating;
+      const loserRating = loserSnap.data().rating;
+      const K = 16;
+      const expectedWinner = 1 / (1 + Math.pow(10, (loserRating - winnerRating) / 400));
+      const newWinnerRating = Math.round(winnerRating + K * (1 - expectedWinner));
+      const winnerDelta = newWinnerRating - winnerRating;
+      const newLoserRating = Math.max(0, loserRating - winnerDelta);
+      tx.update(winnerRef, { rating: newWinnerRating, wins: (winnerSnap.data().wins || 0) + 1 });
+      tx.update(loserRef, { rating: newLoserRating, losses: (loserSnap.data().losses || 0) + 1 });
+      updates.winnerUid = winnerUid;
+      updates.ratingChange = { [winnerUid]: winnerDelta, [loserUid]: newLoserRating - loserRating };
+      updates.status = 'finished';
+    }
+    tx.update(ref, updates);
+  });
+}
+
+// ===================== RANKING TAB =====================
+function subscribeRanking(){
+  const q = query(collection(db, 'users'), orderBy('rating', 'desc'), limit(50));
+  onSnapshot(q, snap => {
+    const list = document.getElementById('rankingList');
+    list.innerHTML = '';
+    let pos = 0;
+    snap.forEach(docSnap => {
+      pos++;
+      const u = docSnap.data();
+      const li = document.createElement('li');
+      li.className = 'rank-row' + (docSnap.id === currentUser?.uid ? ' me' : '');
+      li.innerHTML = `<span class="rank-pos">${pos}</span><img src="${u.photoURL || ''}"><span class="rank-name">${u.displayName}</span><span class="rank-score">${u.rating}</span>`;
+      list.appendChild(li);
+    });
+  });
+}
+</script>
+</body>
+</html>
